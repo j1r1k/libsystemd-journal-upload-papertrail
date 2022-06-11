@@ -42,7 +42,7 @@ executable journal-upload-papertrail
     , utf8-string
   default-language: Haskell2010
 
-test-suite libsystemd-journal-upload-papertrail-test
+test-suite journal-upload-papertrail-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
@@ -55,10 +55,10 @@ test-suite libsystemd-journal-upload-papertrail-test
     , bytestring
     , http-types
     , libsystemd-journal-upload
+    , libsystemd-journal-upload-papertrail
     , mtl
     , network-uri
     , pipes-safe
-    , systemd-journal-upload-papertrail
     , transformers
     , utf8-string
   default-language: Haskell2010
