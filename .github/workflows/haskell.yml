@@ -19,17 +19,19 @@ jobs:
         with:
           stack-version: "2.7.3"
 
-      - name: Cache
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-cabal
+      - uses: actions/cache@v2
         with:
-          path: ~/.cabal
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*.cabal') }}-${{ hashFiles('**/cabal.project') }}
+          path: |
+            ~/.stack
+            .stack-work
+          # best effort for cache: tie it to Stack resolver and package config
+          key: ${{ runner.os }}-stack-${{ hashFiles('stack.yaml.lock', 'package.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+            ${{ runner.os }}-stack
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get install libsystemd-dev
 
       - name: Install dependencies
         run: |
