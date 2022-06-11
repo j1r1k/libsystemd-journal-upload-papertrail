@@ -1,0 +1,52 @@
+name: libsystemd-journal-upload-papertrail
+version: 0.1.0.0
+github: "j1r1k/libsystemd-journal-upload-papertrail"
+license: BSD3
+author: "Jiri Marsicek"
+maintainer: "jiri.marsicek@gmail.com"
+copyright: "2016 Jiri Marsicek"
+
+extra-source-files:
+  - README.md
+  - ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description: Please see the README on GitHub at <https://github.com/j1r1k/libsystemd-journal-upload-papertrail#readme>
+
+dependencies:
+  - base >= 4.7 && < 5
+  - libsystemd-journal-upload
+  - pipes-safe
+  - mtl
+  - http-types
+  - utf8-string
+  - bytestring
+  - transformers
+  - network-uri
+
+executables:
+  journal-upload-papertrail:
+    main: Main.hs
+    source-dirs: app
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+      - -Wall
+
+tests:
+  libsystemd-journal-upload-papertrail-test:
+    main: Spec.hs
+    source-dirs: test
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - systemd-journal-upload-papertrail
