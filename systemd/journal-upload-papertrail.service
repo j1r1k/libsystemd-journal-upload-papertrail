@@ -1,0 +1,12 @@
+[Unit]
+Description=journal-upload-papertrail
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+EnvironmentFile=-%h/.config/journal-upload-papertrail/env
+ExecStart=-%h/.local/bin/journal-upload-papertrail
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
