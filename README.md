@@ -1,4 +1,4 @@
-# libsystemd-journal-papertrail
+# libsystemd-journal-upload-papertrail
 
 Upload journald logs to [papertrail](http://papertrailapp.com/).
 
@@ -19,3 +19,9 @@ systemctl --user daemon-reload
 systemctl --user enable journal-upload-papertrail.service
 systemctl --user start journal-upload-papertrail.service
 ```
+
+## Notes
+
+Depends on: 
+- [libsystemd-journal-upload](https://github.com/j1r1k/libsystemd-journal-upload)
+- [libsystemd-journal](https://github.com/j1r1k/libsystemd-journal)
