@@ -4,7 +4,7 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
-EnvironmentFile=-%h/.config/journal-upload-papertrail/env
+EnvironmentFile=-%h/.config/journal-upload/env
 ExecStart=-%h/.local/bin/journal-upload-papertrail
 Restart=on-failure
 

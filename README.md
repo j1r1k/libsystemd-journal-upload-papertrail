@@ -4,15 +4,7 @@ Upload journald logs to [papertrail](http://papertrailapp.com/).
 
 ## Configuration
 
-1. Store `PAPERTRAIL_TOKEN` in `env` file `${HOME}/.config/journal-upload-papertrail/env`
-
-```sh
-echo -n 'TOKEN' \
-   | sed 's/^/:/' \
-   | base64 \
-   | sed 's/^/PAPERTRAIL_TOKEN=/' \
-   > ~/.config/journal-upload-papertrail/env
-```
+1. Store `PAPERTRAIL_TOKEN` in `env` file `${HOME}/.config/journal-upload/env`
 
 2. Enable it as a systemd user service definition
 
@@ -26,7 +18,7 @@ systemctl --user start journal-upload-papertrail.service
 
 ## Notes
 
-Upload state is stored in `${XDG_DATA_HOME}/systemd/journal-upload/state.json`. 
+Upload state is stored in `${XDG_STATE_DIR}/journal-upload/state.papertrail.json`.
 
 The uploader is resuming the logs from the cursor stored in a state file.
 

@@ -22,6 +22,8 @@ description: Please see the README on GitHub at <https://github.com/j1r1k/libsys
 dependencies:
   - base >= 4.7 && < 5
   - libsystemd-journal-upload
+  - aeson
+  - base64-bytestring
   - pipes-safe
   - mtl
   - http-types
@@ -29,6 +31,8 @@ dependencies:
   - bytestring
   - transformers
   - network-uri
+  - text
+  - xdg-basedir
 
 executables:
   journal-upload-papertrail:
