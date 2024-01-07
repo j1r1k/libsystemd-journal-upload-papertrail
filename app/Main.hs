@@ -17,20 +17,18 @@ import Data.Bifunctor (first)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.UTF8 as UTF8 (fromString)
-import Data.Text (Text)
 import qualified Network.HTTP.Types as HTTP (hAuthorization)
 import Network.URI (parseURI)
 import Pipes.Safe (MonadMask)
 import System.Environment (lookupEnv)
 import System.Environment.XDG.BaseDir (getUserConfigFile)
 import Systemd.Journal.Upload
-  ( JournalUploadConfig (destinationUri, journalUploadRequestHeaders, journalUploadFilter),
+  ( JournalUploadConfig (destinationUri, journalUploadProducerId, journalUploadRequestHeaders, journalUploadFilters),
     JournalUploadError,
-    JournalFilter(..),
-    EntryFilter(..),
     defaultJournalUploadConfig,
-    runWithConfig,
+    runWithConfig
   )
+import Systemd.Journal.Filter (EntryFilter(..))
 
 data PapertrailUploadError
   = DestinationURIInvalid
@@ -39,35 +37,41 @@ data PapertrailUploadError
   | WrappedJournalUploadError JournalUploadError
   deriving (Show)
 
-data PapertrailUploadConfig = PapertrailUploadConfig {
-  filters :: [[(Text, Text)]]
+data ExternalConfig = ExternalConfig {
+  filters :: [EntryFilter]
 } deriving (Show, Generic, FromJSON)
 
-loadPapertrailConfig :: MonadIO m => FilePath -> ExceptT PapertrailUploadError m PapertrailUploadConfig 
-loadPapertrailConfig path = ExceptT $ liftIO $ first InvalidConfig <$> Aeson.eitherDecode <$> B.readFile path
+loadExternalConfig :: MonadIO m => ExceptT PapertrailUploadError m ExternalConfig 
+loadExternalConfig = do
+  path <- liftIO $ getUserConfigFile "journal-upload" "config.json"
+  ExceptT $ liftIO $ first InvalidConfig <$> Aeson.eitherDecode <$> B.readFile path
 
-makeJournalUploadConfig :: ByteString -> PapertrailUploadConfig -> Maybe JournalUploadConfig
-makeJournalUploadConfig token (PapertrailUploadConfig { filters }) =
+
+
+makeJournalUploadConfig :: ByteString -> ExternalConfig -> Maybe JournalUploadConfig
+makeJournalUploadConfig token (ExternalConfig { filters }) =
   let maybeUri = parseURI "https://logs.collector.solarwinds.com/v1/log"
    in fmap
         ( \uri ->
             defaultJournalUploadConfig
-              { destinationUri = uri,
+              { journalUploadProducerId = "papertrail",
+                destinationUri = uri,
                 journalUploadRequestHeaders = [(HTTP.hAuthorization, "Basic " <> token)],
-                journalUploadFilter = Just $ makeJournalUploadFilter filters
+                journalUploadFilters = filters
               }
         )
         maybeUri
-  where
-    makeJournalUploadFilter = JournalFilter . fmap EntryFilter  
+
+loadConfig :: MonadIO m => ExceptT PapertrailUploadError m JournalUploadConfig
+loadConfig = do
+  maybeToken <- liftIO $ lookupEnv "PAPERTRAIL_TOKEN"
+  token <- maybe (except $ Left TokenUnavailable) (pure . UTF8.fromString) maybeToken
+  externalConfig <- loadExternalConfig
+  maybe (except $ Left DestinationURIInvalid) pure $ makeJournalUploadConfig token externalConfig
 
 runPapertrail :: (MonadIO m, MonadMask m) => ExceptT PapertrailUploadError m ()
 runPapertrail = do
-  maybeToken <- liftIO $ lookupEnv "PAPERTRAIL_TOKEN"
-  token <- maybe (except $ Left TokenUnavailable) (pure . UTF8.fromString) maybeToken
-  papertrailConfigPath <- liftIO $ getUserConfigFile "journal-upload-papertrail" "config.json"
-  papertrailConfig <- loadPapertrailConfig papertrailConfigPath
-  config <- maybe (except $ Left DestinationURIInvalid) pure $ makeJournalUploadConfig token papertrailConfig
+  config <- loadConfig
   ExceptT $ fmap (first WrappedJournalUploadError) $ runExceptT $ runWithConfig config
 
 main :: IO ()
