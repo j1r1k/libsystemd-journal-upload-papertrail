@@ -46,8 +46,6 @@ loadExternalConfig = do
   path <- liftIO $ getUserConfigFile "journal-upload" "config.json"
   ExceptT $ liftIO $ first InvalidConfig <$> Aeson.eitherDecode <$> B.readFile path
 
-
-
 makeJournalUploadConfig :: ByteString -> ExternalConfig -> Maybe JournalUploadConfig
 makeJournalUploadConfig token (ExternalConfig { filters }) =
   let maybeUri = parseURI "https://logs.collector.solarwinds.com/v1/log"
