@@ -15,6 +15,7 @@ import Data.Aeson (FromJSON)
 import qualified Data.Aeson as Aeson (eitherDecode)
 import Data.Bifunctor (first)
 import Data.ByteString (ByteString)
+import Data.ByteString.Base64 as B64 (encode)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.UTF8 as UTF8 (fromString)
 import qualified Network.HTTP.Types as HTTP (hAuthorization)
@@ -38,23 +39,26 @@ data PapertrailUploadError
   deriving (Show)
 
 data ExternalConfig = ExternalConfig {
+  uri :: String,
   filters :: [EntryFilter]
 } deriving (Show, Generic, FromJSON)
 
-loadExternalConfig :: MonadIO m => ExceptT PapertrailUploadError m ExternalConfig 
+loadExternalConfig :: MonadIO m => ExceptT PapertrailUploadError m ExternalConfig
 loadExternalConfig = do
   path <- liftIO $ getUserConfigFile "journal-upload" "config.json"
-  ExceptT $ liftIO $ first InvalidConfig <$> Aeson.eitherDecode <$> B.readFile path
+  ExceptT $ liftIO $ first InvalidConfig . Aeson.eitherDecode <$> B.readFile path
 
 makeJournalUploadConfig :: ByteString -> ExternalConfig -> Maybe JournalUploadConfig
-makeJournalUploadConfig token (ExternalConfig { filters }) =
-  let maybeUri = parseURI "https://logs.collector.solarwinds.com/v1/log"
+makeJournalUploadConfig token (ExternalConfig { uri, filters }) =
+  let maybeUri = parseURI uri
    in fmap
-        ( \uri ->
+        ( \parsedUri ->
             defaultJournalUploadConfig
               { journalUploadProducerId = "papertrail",
-                destinationUri = uri,
-                journalUploadRequestHeaders = [(HTTP.hAuthorization, "Basic " <> token)],
+                destinationUri = parsedUri,
+                journalUploadRequestHeaders = [
+                  (HTTP.hAuthorization, "Basic " <> (B64.encode (":" <> token)))
+                  ],
                 journalUploadFilters = filters
               }
         )

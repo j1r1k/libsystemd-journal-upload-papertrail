@@ -23,6 +23,7 @@ dependencies:
   - base >= 4.7 && < 5
   - libsystemd-journal-upload
   - aeson
+  - base64-bytestring
   - pipes-safe
   - mtl
   - http-types

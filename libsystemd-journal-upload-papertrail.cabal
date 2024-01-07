@@ -33,6 +33,7 @@ executable journal-upload-papertrail
   build-depends:
       aeson
     , base >=4.7 && <5
+    , base64-bytestring
     , bytestring
     , http-types
     , libsystemd-journal-upload
